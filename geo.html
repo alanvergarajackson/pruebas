@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Determinar posición del usuario actual con la API de HTML5</title>
+    <style>
+        a {
+            color: #2E88C7;
+        }
+    </style>
+
+    <script>
+        /** @type {HTMLElement}*/
+        var posElt;
+        /** @type {HTMLElement} */
+        var posLinkElt;
+
+
+        window.addEventListener('load', function () {
+            posElt = document.getElementById('Pos');
+            posLinkElt = document.querySelector('#PosLink > a');
+
+            // if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(geoposOK, geoposKO);
+            // }
+            // else {
+            // }
+        });
+
+        /** @param {GeolocationPosition} pos */
+        function geoposOK(pos) {
+            //Obtenemos latitud y longitud
+            var lat = pos.coords.latitude;
+            var long = pos.coords.longitude;
+            posElt.textContent = `${lat}, ${long}`;
+            //generamos enlace a la posición
+            console.log(getDistanciaMetros(lat, long, -20.2583748, -70.0712535));
+            posLinkElt.href = `https://maps.google.com/?q=${lat},${long}`;
+            posLinkElt.textContent = 'Mostrar tu posición en un mapa';
+        }
+
+        /** @param {GeolocationPositionError} err */
+        function geoposKO(err) {
+            console.warn(err.message);
+            let msg;
+            switch (err.code) {
+                case err.PERMISSION_DENIED:
+                    msg = "No nos has dado permiso para obtener tu posición";
+                    break;
+                case err.POSITION_UNAVAILABLE:
+                    msg = "Tu posición actual no está disponible";
+                    break;
+                case err.TIMEOUT:
+                    msg = "No se ha podido obtener tu posición en un tiempo prudencial";
+                    break;
+                default:
+                    msg = "Error desconocido";
+                    break;
+            }
+            posElt.textContent = msg;
+        }
+        function getDistanciaMetros(lat1, lon1, lat2, lon2) {
+            rad = function (x) {return x * Math.PI / 180;}
+            var R = 6378.137; //Radio de la tierra en km 
+            var dLat = rad(lat2 - lat1);
+            var dLong = rad(lon2 - lon1);
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(rad(lat1)) *
+                Math.cos(rad(lat2)) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            //aquí obtienes la distancia en metros por la conversion 1Km =1000m
+            var d = R * c * 1000;
+            return d;
+        }
+
+
+
+
+    </script>
+</head>
+
+<body>
+    <div style="width:750px; margin:2em auto;">
+        <p>Tu posición es: <span id="Pos">Desconocida</span></p>
+        <p id="PosLink"><a target="_blank"></a></p>
+    </div>
+</body>
+
+</html>
